@@ -21,141 +21,140 @@ using UnityEngine.UI;
 using CreateEffectOnExpireModel = Assets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
 using Vector2 = Assets.Scripts.Simulation.SMath.Vector2;
 
-namespace PowersInShop
+namespace PowersInShop;
+
+public abstract class ModTrackPower : ModPowerTower
 {
-    public abstract class ModTrackPower : ModPowerTower
+    protected abstract int Pierce { get; }
+
+    public override string BaseTower => TowerType.NaturesWardTotem;
+    protected abstract ProjectileModel GetProjectile(PowerModel powerModel);
+
+    public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
-        protected abstract int Pierce { get; }
+        var powerModel = Game.instance.model.GetPowerWithName(Name);
 
-        public override string BaseTower => TowerType.NaturesWardTotem;
-        protected abstract ProjectileModel GetProjectile(PowerModel powerModel);
+        towerModel.footprint = new CircleFootprintModel("CircleFootPrintModel_", 0, true, false, true);
+        towerModel.radiusSquared = 9;
+        towerModel.radius = 3;
+        towerModel.range = 0;
+        towerModel.showPowerTowerBuffs = false;
 
-        public override void ModifyBaseTowerModel(TowerModel towerModel)
+        towerModel.GetBehavior<CreateEffectOnExpireModel>().effectModel =
+            powerModel.GetBehavior<CreateEffectOnPowerModel>().effectModel;
+
+        var assetId = powerModel.GetBehavior<CreateSoundOnPowerModel>().sound.assetId;
+        var createSoundOnTowerPlaceModel = towerModel.GetBehavior<CreateSoundOnTowerPlaceModel>();
+        createSoundOnTowerPlaceModel.sound1.assetId = assetId;
+        createSoundOnTowerPlaceModel.sound2.assetId = assetId;
+        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("BlankSoundsModel_", "");
+        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("BlankSoundsModel_", "");
+
+        //tiny little caltrops
+        towerModel.display = towerModel.GetBehavior<DisplayModel>().display = "8ab0e3fbb093a554d84a85e18fe2acac";
+
+        var projectileModel = GetProjectile(powerModel).Duplicate();
+        projectileModel.pierce = Pierce;
+        if (projectileModel.maxPierce != 0)
         {
-            var powerModel = Game.instance.model.GetPowerWithName(Name);
-
-            towerModel.footprint = new CircleFootprintModel("CircleFootPrintModel_", 0, true, false, true);
-            towerModel.radiusSquared = 9;
-            towerModel.radius = 3;
-            towerModel.range = 0;
-            towerModel.showPowerTowerBuffs = false;
-
-            towerModel.GetBehavior<CreateEffectOnExpireModel>().effectModel =
-                powerModel.GetBehavior<CreateEffectOnPowerModel>().effectModel;
-
-            var assetId = powerModel.GetBehavior<CreateSoundOnPowerModel>().sound.assetId;
-            var createSoundOnTowerPlaceModel = towerModel.GetBehavior<CreateSoundOnTowerPlaceModel>();
-            createSoundOnTowerPlaceModel.sound1.assetId = assetId;
-            createSoundOnTowerPlaceModel.sound2.assetId = assetId;
-            createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("BlankSoundsModel_", "");
-            createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("BlankSoundsModel_", "");
-
-            //tiny little caltrops
-            towerModel.display = towerModel.GetBehavior<DisplayModel>().display = "8ab0e3fbb093a554d84a85e18fe2acac";
-
-            var projectileModel = GetProjectile(powerModel).Duplicate();
-            projectileModel.pierce = Pierce;
-            if (projectileModel.maxPierce != 0)
-            {
-                projectileModel.maxPierce = Pierce;
-            }
-
-            towerModel.RemoveBehaviors<SlowModel>();
+            projectileModel.maxPierce = Pierce;
         }
 
+        towerModel.RemoveBehaviors<SlowModel>();
+    }
 
-        [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode))]
-        internal class InputManager_EnterPlacementMode
+
+    [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode))]
+    internal class InputManager_EnterPlacementMode
+    {
+        [HarmonyPostfix]
+        internal static void Postfix(TowerModel forTowerModel)
         {
-            [HarmonyPostfix]
-            internal static void Postfix(TowerModel forTowerModel)
+            if (forTowerModel.GetModTower() is ModTrackPower trackPower)
             {
-                if (forTowerModel.GetModTower() is ModTrackPower trackPower)
-                {
-                    var image = ShopMenu.instance
-                        .GetTowerButtonFromBaseId(trackPower.Id)
-                        .gameObject.transform
-                        .Find("Icon").GetComponent<Image>();
-                    InGameObjects.instance.PowerIconStart(image.sprite);
-                }
+                var image = ShopMenu.instance
+                    .GetTowerButtonFromBaseId(trackPower.Id)
+                    .gameObject.transform
+                    .Find("Icon").GetComponent<Image>();
+                InGameObjects.instance.PowerIconStart(image.sprite);
             }
         }
+    }
 
-        [HarmonyPatch(typeof(InputManager), nameof(InputManager.Update))]
-        internal class InputManager_Update
+    [HarmonyPatch(typeof(InputManager), nameof(InputManager.Update))]
+    internal class InputManager_Update
+    {
+        [HarmonyPostfix]
+        internal static void Postfix()
         {
-            [HarmonyPostfix]
-            internal static void Postfix()
+            var inputManager = InGame.instance.inputManager;
+            var towerModel = inputManager.towerModel;
+            if (towerModel != null && inputManager.inPlacementMode && towerModel.GetModTower() is ModTrackPower)
             {
-                var inputManager = InGame.instance.inputManager;
-                var towerModel = inputManager.towerModel;
-                if (towerModel != null && inputManager.inPlacementMode && towerModel.GetModTower() is ModTrackPower)
-                {
-                    var map = InGame.instance.UnityToSimulation.simulation.Map;
-                    InGameObjects.instance.PowerIconUpdate(inputManager.GetCursorPosition(),
-                        map.CanPlace(new Vector2(inputManager.cursorPositionWorld), towerModel));
-                }
+                var map = InGame.instance.UnityToSimulation.simulation.Map;
+                InGameObjects.instance.PowerIconUpdate(inputManager.GetCursorPosition(),
+                    map.CanPlace(new Vector2(inputManager.cursorPositionWorld), towerModel));
             }
         }
+    }
 
-        [HarmonyPatch(typeof(InputManager), nameof(InputManager.ExitPlacementMode))]
-        internal class InputManager_ExitPlacementMode
+    [HarmonyPatch(typeof(InputManager), nameof(InputManager.ExitPlacementMode))]
+    internal class InputManager_ExitPlacementMode
+    {
+        [HarmonyPostfix]
+        internal static void Postfix()
         {
-            [HarmonyPostfix]
-            internal static void Postfix()
+            if (InGameObjects.instance.powerIcon != null)
             {
-                if (InGameObjects.instance.powerIcon != null)
-                {
-                    InGameObjects.instance.PowerIconEnd();
-                }
+                InGameObjects.instance.PowerIconEnd();
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Map), nameof(Map.CanPlace))]
-        internal class Map_CanPlace
+    [HarmonyPatch(typeof(Map), nameof(Map.CanPlace))]
+    internal class Map_CanPlace
+    {
+        [HarmonyPostfix]
+        internal static void Patch(ref bool __result, Vector2 at, TowerModel tm)
         {
-            [HarmonyPostfix]
-            internal static void Patch(ref bool __result, Vector2 at, TowerModel tm)
+            if (tm.GetModTower() is ModTrackPower)
             {
-                if (tm.GetModTower() is ModTrackPower)
-                {
-                    var map = InGame.instance.UnityToSimulation.simulation.Map;
-                    __result = map.GetAllAreasOfTypeThatTouchPoint(at).ToArray()
-                        .Any(area => area.areaModel.type == AreaType.track);
-                }
+                var map = InGame.instance.UnityToSimulation.simulation.Map;
+                __result = map.GetAllAreasOfTypeThatTouchPoint(at).ToArray()
+                    .Any(area => area.areaModel.type == AreaType.track);
             }
         }
+    }
 
 
-        [HarmonyPatch(typeof(Tower), nameof(Tower.Initialise))]
-        public class Tower_Initialise
+    [HarmonyPatch(typeof(Tower), nameof(Tower.Initialise))]
+    public class Tower_Initialise
+    {
+        [HarmonyPostfix]
+        public static void Postfix(Tower __instance)
         {
-            [HarmonyPostfix]
-            public static void Postfix(Tower __instance)
+            if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower)
             {
-                if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower)
-                {
-                    var powerBehaviorModel = Game.instance.model.GetPowerWithName(trackPower.Name)
-                        .GetBehavior<PowerBehaviorModel>();
+                var powerBehaviorModel = Game.instance.model.GetPowerWithName(trackPower.Name)
+                    .GetBehavior<PowerBehaviorModel>();
 
-                    InGame.instance.UnityToSimulation.simulation.powerManager.GetInstance(powerBehaviorModel)
-                        .Activate(__instance.Position.ToVector2(), powerBehaviorModel, 0);
-                }
+                InGame.instance.UnityToSimulation.simulation.powerManager.GetInstance(powerBehaviorModel)
+                    .Activate(__instance.Position.ToVector2(), powerBehaviorModel, 0);
             }
         }
+    }
 
-        [HarmonyPatch(typeof(Tower), nameof(Tower.OnDestroy))]
-        public class Tower_OnDestroy
+    [HarmonyPatch(typeof(Tower), nameof(Tower.OnDestroy))]
+    public class Tower_OnDestroy
+    {
+        [HarmonyPrefix]
+        public static void Prefix(Tower __instance)
         {
-            [HarmonyPrefix]
-            public static void Prefix(Tower __instance)
+            if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower &&
+                (!InGame.instance.IsCoop || __instance.owner == Game.instance.GetNkGI().PeerID) &&
+                (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             {
-                if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower &&
-                    (!InGame.instance.IsCoop || __instance.owner == Game.instance.GetNkGI().PeerID) &&
-                    (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-                {
-                    ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).ButtonActivated();
-                }
+                ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).ButtonActivated();
             }
         }
     }

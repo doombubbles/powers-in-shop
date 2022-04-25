@@ -9,96 +9,95 @@ using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
 using UnityEngine;
 
-namespace PowersInShop.Towers
+namespace PowersInShop.Towers;
+
+public class EnergisingTotem : ModPowerTower
 {
-    public class EnergisingTotem : ModPowerTower
+    public override string BaseTower => TowerType.EnergisingTotem;
+    public override int Cost => PowersInShopMod.EnergisingTotemCost;
+    public override int Order => 5;
+
+    public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
-        public override string BaseTower => TowerType.EnergisingTotem;
-        public override int Cost => PowersInShopMod.EnergisingTotemCost;
-        public override int Order => 5;
+        towerModel.GetBehavior<RateSupportModel>().multiplier = (float) (1 - PowersInShopMod.TotemAttackSpeed);
 
-        public override void ModifyBaseTowerModel(TowerModel towerModel)
+        towerModel.GetBehavior<EnergisingTotemBehaviorModel>().monkeyMoneyCost = 0;
+    }
+
+
+    [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.OnButtonPress))]
+    public class TSMThemeEnergisingTotem_OnButtonPress
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(TSMThemeEnergisingTotem __instance, TowerToSimulation tower)
         {
-            towerModel.GetBehavior<RateSupportModel>().multiplier = (float) (1 - PowersInShopMod.TotemAttackSpeed);
-
-            towerModel.GetBehavior<EnergisingTotemBehaviorModel>().monkeyMoneyCost = 0;
-        }
-
-
-        [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.OnButtonPress))]
-        public class TSMThemeEnergisingTotem_OnButtonPress
-        {
-            [HarmonyPrefix]
-            public static bool Prefix(TSMThemeEnergisingTotem __instance, TowerToSimulation tower)
+            if (tower.worth > 0)
             {
-                if (tower.worth > 0)
+                var cash = InGame.instance.GetCash();
+                var cost = CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost, InGame.instance);
+                if (cash < cost)
                 {
-                    var cash = InGame.instance.GetCash();
-                    var cost = CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost, InGame.instance);
-                    if (cash < cost)
-                    {
-                        return false;
-                    }
-
-                    InGame.instance.SetCash(cash - cost);
-
-                    /*var mm = Game.instance.playerService.Player.Data.monkeyMoney.Value;
-                    Game.instance.playerService.Player.Data.monkeyMoney.Value = mm + 20;*/
+                    return false;
                 }
 
-                return true;
+                InGame.instance.SetCash(cash - cost);
+
+                /*var mm = Game.instance.playerService.Player.Data.monkeyMoney.Value;
+                Game.instance.playerService.Player.Data.monkeyMoney.Value = mm + 20;*/
             }
+
+            return true;
         }
+    }
 
-        [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.Selected))]
-        public class TSMThemeEnergisingTotem_Selected
+    [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.Selected))]
+    public class TSMThemeEnergisingTotem_Selected
+    {
+        public static bool lastOpened;
+        private static string og;
+        private static Color color;
+        private static Color32 outline;
+
+        [HarmonyPostfix]
+        public static void Postfix(TSMThemeEnergisingTotem __instance, TowerToSimulation tower)
         {
-            public static bool lastOpened;
-            private static string og;
-            private static Color color;
-            private static Color32 outline;
-
-            [HarmonyPostfix]
-            public static void Postfix(TSMThemeEnergisingTotem __instance, TowerToSimulation tower)
+            if (og == null)
             {
-                if (og == null)
+                og = __instance.rechargeCostText.m_text;
+                color = __instance.rechargeCostText.color;
+                outline = __instance.rechargeCostText.outlineColor;
+            }
+
+            if (tower.worth > 0)
+            {
+                __instance.rechargeCostText.SetText("$" +
+                                                    CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost,
+                                                        InGame.instance));
+                __instance.rechargeCostText.outlineColor = new Color32(0, 0, 0, 0);
+                __instance.rechargeCostText.color = Color.white;
+
+                if (!lastOpened)
                 {
-                    og = __instance.rechargeCostText.m_text;
-                    color = __instance.rechargeCostText.color;
-                    outline = __instance.rechargeCostText.outlineColor;
+                    __instance.rechargeButton.transform.GetChild(1).Translate(-5000, 0, 0);
+                    __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(5000, 0, 0);
+                    __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(4970, 0, 0);
                 }
 
-                if (tower.worth > 0)
+                lastOpened = true;
+            }
+            else
+            {
+                __instance.rechargeCostText.SetText(og);
+                __instance.rechargeCostText.outlineColor = outline;
+                __instance.rechargeCostText.color = color;
+                if (lastOpened)
                 {
-                    __instance.rechargeCostText.SetText("$" +
-                                                        CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost,
-                                                            InGame.instance));
-                    __instance.rechargeCostText.outlineColor = new Color32(0, 0, 0, 0);
-                    __instance.rechargeCostText.color = Color.white;
-
-                    if (!lastOpened)
-                    {
-                        __instance.rechargeButton.transform.GetChild(1).Translate(-5000, 0, 0);
-                        __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(5000, 0, 0);
-                        __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(4970, 0, 0);
-                    }
-
-                    lastOpened = true;
+                    __instance.rechargeButton.transform.GetChild(1).Translate(5000, 0, 0);
+                    __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(-5000, 0, 0);
+                    __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(-4970, 0, 0);
                 }
-                else
-                {
-                    __instance.rechargeCostText.SetText(og);
-                    __instance.rechargeCostText.outlineColor = outline;
-                    __instance.rechargeCostText.color = color;
-                    if (lastOpened)
-                    {
-                        __instance.rechargeButton.transform.GetChild(1).Translate(5000, 0, 0);
-                        __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(-5000, 0, 0);
-                        __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(-4970, 0, 0);
-                    }
 
-                    lastOpened = false;
-                }
+                lastOpened = false;
             }
         }
     }
