@@ -2,7 +2,7 @@
 
 # Powers in Shop
 
-## NOTE: This version of the mod requires BTD6 Mod Helper >v3.0 and MelonLoader >v0.6
+## NOTE: This alpha version of the mod requires BTD6 Mod Helper >v3.0, see [here](https://github.com/doombubbles/BTD6-Mods#readme) for the stable mods
 
 This mod adds many of the Monkey Money Powers to the in-game shop for purchase with normal currency.
 
