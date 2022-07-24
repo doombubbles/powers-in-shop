@@ -15,7 +15,7 @@ public class EnergisingTotem : ModPowerTower
 {
     public override string BaseTower => TowerType.EnergisingTotem;
     public override int Cost => PowersInShopMod.EnergisingTotemCost;
-    public override int Order => 5;
+    protected override int Order => 5;
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {

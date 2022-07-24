@@ -8,7 +8,7 @@ public class GlueTrap : ModTrackPower
 {
     public override int Cost => PowersInShopMod.GlueTrapCost;
     protected override int Pierce => PowersInShopMod.GlueTrapPierce;
-    public override int Order => 6;
+    protected override int Order => 6;
 
     protected override ProjectileModel GetProjectile(PowerModel powerModel)
     {

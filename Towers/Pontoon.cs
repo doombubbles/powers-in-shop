@@ -6,5 +6,5 @@ public class Pontoon : ModPowerTower
 {
     public override string BaseTower => TowerType.Pontoon;
     public override int Cost => PowersInShopMod.PontoonCost;
-    public override int Order => 2;
+    protected override int Order => 2;
 }

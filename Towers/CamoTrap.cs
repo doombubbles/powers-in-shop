@@ -8,7 +8,7 @@ public class CamoTrap : ModTrackPower
 {
     public override int Cost => PowersInShopMod.CamoTrapCost;
     protected override int Pierce => PowersInShopMod.CamoTrapPierce;
-    public override int Order => 7;
+    protected override int Order => 7;
 
     protected override ProjectileModel GetProjectile(PowerModel powerModel)
     {

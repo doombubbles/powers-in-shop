@@ -8,7 +8,7 @@ public class RoadSpikes : ModTrackPower
 {
     public override int Cost => PowersInShopMod.RoadSpikesCost;
     protected override int Pierce => PowersInShopMod.RoadSpikesPierce;
-    public override int Order => 5;
+    protected override int Order => 5;
 
     protected override ProjectileModel GetProjectile(PowerModel powerModel)
     {
