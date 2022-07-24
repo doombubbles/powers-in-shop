@@ -1,0 +1,1 @@
+- Update for Mod Helper 3.0 alpha
