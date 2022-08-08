@@ -1,6 +1,15 @@
 # Changelog
 
+v2.0.3
+
+- Fixed for BTD6 v32.0
+
+v2.0.2
+
+- Misc small fixes
+
 v2.0.1 
+
 - Updated for Mod Helper 3.0
 
 ### Old Repo

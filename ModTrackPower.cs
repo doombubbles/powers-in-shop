@@ -14,6 +14,8 @@ using Assets.Scripts.Unity;
 using Assets.Scripts.Unity.UI_New;
 using Assets.Scripts.Unity.UI_New.InGame;
 using Assets.Scripts.Unity.UI_New.InGame.RightMenu;
+using BTD_Mod_Helper;
+using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
 using UnityEngine;
@@ -47,11 +49,12 @@ public abstract class ModTrackPower : ModPowerTower
         var createSoundOnTowerPlaceModel = towerModel.GetBehavior<CreateSoundOnTowerPlaceModel>();
         createSoundOnTowerPlaceModel.sound1.assetId = assetId;
         createSoundOnTowerPlaceModel.sound2.assetId = assetId;
-        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("BlankSoundsModel_", "");
-        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("BlankSoundsModel_", "");
+        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("BlankSoundsModel_", CreateAudioSourceReference(""));
+        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("BlankSoundsModel_", CreateAudioSourceReference(""));
 
         //tiny little caltrops
-        towerModel.display = towerModel.GetBehavior<DisplayModel>().display = "8ab0e3fbb093a554d84a85e18fe2acac";
+        towerModel.display = towerModel.GetBehavior<DisplayModel>().display =
+            CreatePrefabReference("8ab0e3fbb093a554d84a85e18fe2acac");
 
         var projectileModel = GetProjectile(powerModel).Duplicate();
         projectileModel.pierce = Pierce;
@@ -135,11 +138,9 @@ public abstract class ModTrackPower : ModPowerTower
         {
             if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower)
             {
-                var powerBehaviorModel = Game.instance.model.GetPowerWithName(trackPower.Name)
-                    .GetBehavior<PowerBehaviorModel>();
+                var powerModel = Game.instance.model.GetPowerWithName(trackPower.Name);
 
-                InGame.instance.UnityToSimulation.simulation.powerManager.GetInstance(powerBehaviorModel)
-                    .Activate(__instance.Position.ToVector2(), powerBehaviorModel, 0);
+                InGame.instance.UnityToSimulation.ActivatePower(new UnityEngine.Vector2(__instance.Position.X, __instance.Position.Y), powerModel);
             }
         }
     }

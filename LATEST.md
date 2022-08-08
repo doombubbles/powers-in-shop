@@ -1,1 +1,1 @@
-- Update for Mod Helper 3.0 alpha
+- Fixed for BTD6 v32.0
