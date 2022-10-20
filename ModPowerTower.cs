@@ -30,6 +30,5 @@ public abstract class ModPowerTower : ModTower<Powers>
         
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
-        towerModel.powerName = Name;
     }
 }
