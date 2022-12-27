@@ -1,27 +1,27 @@
 using System.Linq;
-using Assets.Scripts.Models.Audio;
-using Assets.Scripts.Models.GenericBehaviors;
-using Assets.Scripts.Models.Map;
-using Assets.Scripts.Models.Powers;
-using Assets.Scripts.Models.Powers.Effects;
-using Assets.Scripts.Models.Towers;
-using Assets.Scripts.Models.Towers.Behaviors;
-using Assets.Scripts.Models.Towers.Projectiles;
-using Assets.Scripts.Models.Towers.Projectiles.Behaviors;
-using Assets.Scripts.Simulation.Towers;
-using Assets.Scripts.Simulation.Track;
-using Assets.Scripts.Unity;
-using Assets.Scripts.Unity.UI_New;
-using Assets.Scripts.Unity.UI_New.InGame;
-using Assets.Scripts.Unity.UI_New.InGame.RightMenu;
+using Il2CppAssets.Scripts.Models.Audio;
+using Il2CppAssets.Scripts.Models.GenericBehaviors;
+using Il2CppAssets.Scripts.Models.Map;
+using Il2CppAssets.Scripts.Models.Powers;
+using Il2CppAssets.Scripts.Models.Powers.Effects;
+using Il2CppAssets.Scripts.Models.Towers;
+using Il2CppAssets.Scripts.Models.Towers.Behaviors;
+using Il2CppAssets.Scripts.Models.Towers.Projectiles;
+using Il2CppAssets.Scripts.Models.Towers.Projectiles.Behaviors;
+using Il2CppAssets.Scripts.Simulation.Towers;
+using Il2CppAssets.Scripts.Simulation.Track;
+using Il2CppAssets.Scripts.Unity;
+using Il2CppAssets.Scripts.Unity.UI_New;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame.RightMenu;
 using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
-using CreateEffectOnExpireModel = Assets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
-using Vector2 = Assets.Scripts.Simulation.SMath.Vector2;
+using CreateEffectOnExpireModel = Il2CppAssets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
+using Vector2 = Il2CppAssets.Scripts.Simulation.SMath.Vector2;
 
 namespace PowersInShop;
 
@@ -118,13 +118,12 @@ public abstract class ModTrackPower : ModPowerTower
     internal class Map_CanPlace
     {
         [HarmonyPostfix]
-        internal static void Patch(ref bool __result, Vector2 at, TowerModel tm)
+        internal static void Patch(Map __instance, ref bool __result, Vector2 at, TowerModel tm)
         {
             if (tm.GetModTower() is ModTrackPower)
             {
                 var map = InGame.instance.UnityToSimulation.simulation.Map;
-                __result = map.GetAllAreasOfTypeThatTouchPoint(at).ToArray()
-                    .Any(area => area.areaModel.type == AreaType.track);
+                __result = map.GetAreaAtPoint(at)?.areaModel?.type == AreaType.track;
             }
         }
     }

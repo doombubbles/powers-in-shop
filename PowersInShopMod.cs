@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using Assets.Scripts.Models;
-using Assets.Scripts.Models.Towers.Mods;
-using Assets.Scripts.Models.TowerSets.Mods;
+using Il2CppAssets.Scripts.Models;
+using Il2CppAssets.Scripts.Models.Towers.Mods;
+using Il2CppAssets.Scripts.Models.TowerSets.Mods;
 using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Api.Enums;

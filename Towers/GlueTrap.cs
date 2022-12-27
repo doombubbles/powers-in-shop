@@ -1,5 +1,5 @@
-using Assets.Scripts.Models.Powers;
-using Assets.Scripts.Models.Towers.Projectiles;
+using Il2CppAssets.Scripts.Models.Powers;
+using Il2CppAssets.Scripts.Models.Towers.Projectiles;
 using BTD_Mod_Helper.Extensions;
 
 namespace PowersInShop.Towers;
