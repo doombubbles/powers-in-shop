@@ -18,6 +18,7 @@ using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
+using Il2CppAssets.Scripts;
 using UnityEngine;
 using UnityEngine.UI;
 using CreateEffectOnExpireModel = Il2CppAssets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
@@ -67,7 +68,8 @@ public abstract class ModTrackPower : ModPowerTower
     }
 
 
-    [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode))]
+    [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode), typeof(TowerModel),
+        typeof(InputManager.PositionDelegate), typeof(ObjectId), typeof(bool))]
     internal class InputManager_EnterPlacementMode
     {
         [HarmonyPostfix]
