@@ -1,1 +1,6 @@
-- Fixed for BTD6 v36.0
+- Fixed for BTD6 v39
+- Added options for applying power skins to powers in shop
+- Added option to override normal Power Hotkeys to use for the powers in shop
+- Fixed Monkey Knowledge not applying properly to powers in shop
+- Fixed bugs with Energising Totem UI
+- Benjamin's Biohack now ignores the powers in shop towers

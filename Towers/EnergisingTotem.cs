@@ -3,11 +3,13 @@ using Il2CppAssets.Scripts.Models.Towers.Behaviors;
 using Il2CppAssets.Scripts.Unity.Bridge;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame.TowerSelectionMenu.TowerSelectionMenuThemes;
-using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api.Helpers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
+using Il2Cpp;
+using Il2CppAssets.Scripts.Models;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace PowersInShop.Towers;
 
@@ -15,16 +17,14 @@ public class EnergisingTotem : ModPowerTower
 {
     public override string BaseTower => TowerType.EnergisingTotem;
     public override int Cost => PowersInShopMod.EnergisingTotemCost;
-    protected override int Order => 5;
+    protected override int Order => 7;
 
-    public override void ModifyBaseTowerModel(TowerModel towerModel)
+    public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
     {
-        base.ModifyBaseTowerModel(towerModel);
+        base.ModifyTowerModelForMatch(towerModel, gameModel);
         towerModel.GetBehavior<RateSupportModel>().multiplier = 1 - PowersInShopMod.TotemAttackSpeed;
-
         towerModel.GetBehavior<EnergisingTotemBehaviorModel>().monkeyMoneyCost = 0;
     }
-
 
     [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.OnButtonPress))]
     public class TSMThemeEnergisingTotem_OnButtonPress
@@ -54,52 +54,25 @@ public class EnergisingTotem : ModPowerTower
     [HarmonyPatch(typeof(TSMThemeEnergisingTotem), nameof(TSMThemeEnergisingTotem.Selected))]
     public class TSMThemeEnergisingTotem_Selected
     {
-        public static bool lastOpened;
-        private static string og;
-        private static Color color;
-        private static Color32 outline;
-
         [HarmonyPostfix]
         public static void Postfix(TSMThemeEnergisingTotem __instance, TowerToSimulation tower)
         {
-            if (og == null)
-            {
-                og = __instance.rechargeCostText.m_text;
-                color = __instance.rechargeCostText.color;
-                outline = __instance.rechargeCostText.outlineColor;
-            }
+            var towerModel = tower.tower.towerModel;
 
-            if (tower.worth > 0)
-            {
-                __instance.rechargeCostText.SetText("$" +
-                                                    CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost,
-                                                        InGame.instance));
-                __instance.rechargeCostText.outlineColor = new Color32(0, 0, 0, 0);
-                __instance.rechargeCostText.color = Color.white;
+            var isPowerInShop = !towerModel.isPowerTower;
 
-                if (!lastOpened)
-                {
-                    __instance.rechargeButton.transform.GetChild(1).Translate(-5000, 0, 0);
-                    __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(5000, 0, 0);
-                    __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(4970, 0, 0);
-                }
+            var button = __instance.rechargeButton.gameObject;
 
-                lastOpened = true;
-            }
-            else
-            {
-                __instance.rechargeCostText.SetText(og);
-                __instance.rechargeCostText.outlineColor = outline;
-                __instance.rechargeCostText.color = color;
-                if (lastOpened)
-                {
-                    __instance.rechargeButton.transform.GetChild(1).Translate(5000, 0, 0);
-                    __instance.rechargeButton.transform.GetChild(1).GetChild(0).Translate(-5000, 0, 0);
-                    __instance.rechargeButton.transform.GetChild(1).GetChild(1).Translate(-4970, 0, 0);
-                }
+            var cost = CostHelper.CostForDifficulty(PowersInShopMod.TotemRechargeCost, InGame.instance);
 
-                lastOpened = false;
-            }
+            var newText = button.GetComponentInChildrenByName<NK_TextMeshProUGUI>("Text");
+            newText.enabled = true;
+            newText.text = $"${cost:N0}";
+            newText.margin = new Vector4(0, 25, 0, 0);
+            newText.gameObject.SetActive(isPowerInShop);
+
+            button.GetComponentInChildrenByName<Image>("MmIcon").enabled = !isPowerInShop;
+            button.GetComponentInChildrenByName<NK_TextMeshProUGUI>("TextCount").enabled = !isPowerInShop;
         }
     }
 }
