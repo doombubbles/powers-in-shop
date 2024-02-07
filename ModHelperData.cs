@@ -2,8 +2,8 @@
 
 public static class ModHelperData
 {
-    public const string WorksOnVersion = "39.0";
-    public const string Version = "2.1.0";
+    public const string WorksOnVersion = "41.0";
+    public const string Version = "2.1.1";
     public const string RepoOwner = "doombubbles";
     public const string RepoName = "powers-in-shop";
     public const string Name = "Powers in Shop";

@@ -28,7 +28,7 @@ public class Powers : ModTowerSet
 
             foreach (var towerPurchaseButton in ShopMenu.instance.ActiveTowerButtons)
             {
-                var towerBaseId = towerPurchaseButton.towerModel.baseId;
+                var towerBaseId = towerPurchaseButton.TowerModel.baseId;
                 if (!ModPowerTower.PowersById.TryGetValue(towerBaseId, out var power)) continue;
 
                 HotkeyButton hotkeyButton;

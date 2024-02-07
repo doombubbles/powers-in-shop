@@ -16,6 +16,7 @@ using HarmonyLib;
 using Il2CppAssets.Scripts;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Towers.Behaviors.Emissions;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame.StoreMenu;
 using UnityEngine;
 using UnityEngine.UI;
 using CreateEffectOnExpireModel = Il2CppAssets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
@@ -104,7 +105,7 @@ public abstract class ModTrackPower : ModPowerTower
                     .GetTowerButtonFromBaseId(trackPower.Id)
                     .gameObject.transform
                     .Find("Icon").GetComponent<Image>();
-                
+
                 InGameObjects.instance.IconUpdate(new UnityEngine.Vector2(-3000, 0), false);
                 InGameObjects.instance.IconStart(image.sprite);
             }
@@ -148,7 +149,9 @@ public abstract class ModTrackPower : ModPowerTower
                 (!InGame.instance.IsCoop || __instance.owner == Game.instance.GetNkGI().PeerID) &&
                 (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             {
-                ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).ButtonActivated();
+                ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).gameObject
+                    .GetComponent<TowerPurchaseButton>()
+                    .ButtonActivated();
             }
         }
     }
