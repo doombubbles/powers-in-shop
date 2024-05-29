@@ -86,7 +86,7 @@ public abstract class ModTrackPower : ModPowerTower
 
         if (towerModel != null && inputManager!.inPlacementMode && towerModel.GetModTower() is ModTrackPower)
         {
-            var map = InGame.instance.UnityToSimulation.simulation.Map;
+            var map = InGame.instance.bridge.simulation.Map;
             InGameObjects.instance.IconUpdate(InputManager.GetCursorPosition(),
                 map.CanPlace(new Vector2(inputManager.cursorPositionWorld), towerModel));
         }
@@ -133,7 +133,7 @@ public abstract class ModTrackPower : ModPowerTower
         {
             if (tm.GetModTower() is ModTrackPower)
             {
-                var map = InGame.instance.UnityToSimulation.simulation.Map;
+                var map = InGame.instance.bridge.simulation.Map;
                 __result = map.GetAreaAtPoint(at)?.areaModel?.type == AreaType.track;
             }
         }
