@@ -1,1 +1,1 @@
-- Fixed for BTD6 v43
+- Tech Bot tower can no longer target itself and cause crashes
