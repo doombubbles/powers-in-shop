@@ -1,1 +1,3 @@
-- Tech Bot tower can no longer target itself and cause crashes
+- Changing Power Tower costs no longer requires a Restart to take effect
+- Modes like Odysseys which limit your power inventory now also apply to powers in shop
+- Power Towers will no longer be part of Monkey Teams

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
@@ -22,11 +24,9 @@ public abstract class ModPowerTower : ModTower<Powers>
     public sealed override int BottomPathUpgrades => 0;
     public override bool DontAddToShop => Cost < 0;
 
-    public override string DisplayName =>
-        Game.instance.GetLocalizationManager().GetText(Name);
+    public override string DisplayName => $"[{Name}]";
 
-    public sealed override string Description =>
-        Game.instance.GetLocalizationManager().GetText(Name + " Description");
+    public sealed override string Description => $"[{Name} Description]";
 
     public sealed override SpriteReference IconReference => PortraitReference;
 
@@ -38,6 +38,8 @@ public abstract class ModPowerTower : ModTower<Powers>
             return powerWithName.tower?.portrait ?? powerWithName.icon;
         }
     }
+
+    public sealed override bool IncludeInMonkeyTeams => false;
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
@@ -77,7 +79,15 @@ public abstract class ModPowerTower : ModTower<Powers>
             {
                 var powersInShopTower = CosmeticHelper.rootGameModel.GetTowerFromId(modPowerTower.Id);
 
-                CosmeticHelper.ApplyAssetChangesToPowerTowerModel(powersInShopTower, pac);
+                try
+                {
+                    CosmeticHelper.ApplyAssetChangesToPowerTowerModel(powersInShopTower, pac);
+                }
+                catch (Exception e)
+                {
+                    ModHelper.Warning<PowersInShopMod>($"Failed to apply cosmetic changed to {modPowerTower.Id}");
+                    ModHelper.Warning<PowersInShopMod>(e);
+                }
             }
             else if (PowersById.ContainsKey(towerModel.baseId))
             {

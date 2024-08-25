@@ -8,6 +8,7 @@ using Il2CppAssets.Scripts.Data;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Gameplay.Mods;
 using Il2CppAssets.Scripts.Models.Towers.Behaviors.Abilities.Behaviors;
+using Il2CppAssets.Scripts.Unity;
 using MelonLoader;
 using Newtonsoft.Json.Linq;
 using PowersInShop;
@@ -28,7 +29,8 @@ public class PowersInShopMod : BloonsTD6Mod
     {
         description =
             "Determines whether power towers will be usable in Primary Only, Military Only and Magic Only game modes.",
-        icon = VanillaSprites.MagicBtn2
+        icon = VanillaSprites.MagicBtn2,
+        requiresRestart = true
     };
 
     public static readonly ModSettingBool OverrideHotkeys = new(true)
@@ -163,6 +165,14 @@ public class PowersInShopMod : BloonsTD6Mod
 
     public override void OnSaveSettings(JObject settings)
     {
+        foreach (var modPowerTower in ModContent.GetContent<ModPowerTower>())
+        {
+            foreach (var towerModel in Game.instance.model.GetTowersWithBaseId(modPowerTower.Id))
+            {
+                towerModel.cost = modPowerTower.Cost;
+            }
+        }
+        
         var chimps = GameData.Instance.mods.FirstOrDefault(model => model.name == "Clicks");
         if (chimps == null) return;
 
