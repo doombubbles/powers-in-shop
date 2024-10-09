@@ -1,3 +1,1 @@
-- Changing Power Tower costs no longer requires a Restart to take effect
-- Modes like Odysseys which limit your power inventory now also apply to powers in shop
-- Power Towers will no longer be part of Monkey Teams
+- Fixed for BTD6 v45

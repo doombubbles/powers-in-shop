@@ -17,6 +17,7 @@ using Il2CppAssets.Scripts;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Towers.Behaviors.Emissions;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame.StoreMenu;
+using Il2CppNinjaKiwi.Common.ResourceUtils;
 using UnityEngine;
 using UnityEngine.UI;
 using CreateEffectOnExpireModel = Il2CppAssets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
@@ -35,7 +36,6 @@ public abstract class ModTrackPower : ModPowerTower
         var powerModel = Game.instance.model.GetPowerWithName(Name);
 
         towerModel.footprint = new CircleFootprintModel("", 0, true, false, true);
-        towerModel.radiusSquared = 9;
         towerModel.radius = 3;
         towerModel.range = 0;
         towerModel.showPowerTowerBuffs = false;
@@ -47,8 +47,8 @@ public abstract class ModTrackPower : ModPowerTower
         var createSoundOnTowerPlaceModel = towerModel.GetBehavior<CreateSoundOnTowerPlaceModel>();
         createSoundOnTowerPlaceModel.sound1.assetId = assetId;
         createSoundOnTowerPlaceModel.sound2.assetId = assetId;
-        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("", CreateAudioSourceReference(""));
-        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("", CreateAudioSourceReference(""));
+        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("", new AudioClipReference(""));
+        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("", new AudioClipReference(""));
 
         towerModel.display = towerModel.GetBehavior<DisplayModel>().display = CreatePrefabReference("");
 

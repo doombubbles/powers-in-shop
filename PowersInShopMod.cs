@@ -29,7 +29,7 @@ public class PowersInShopMod : BloonsTD6Mod
     {
         description =
             "Determines whether power towers will be usable in Primary Only, Military Only and Magic Only game modes.",
-        icon = VanillaSprites.MagicBtn2,
+        icon = VanillaSprites.MagicBtn,
         requiresRestart = true
     };
 
@@ -49,6 +49,12 @@ public class PowersInShopMod : BloonsTD6Mod
     {
         description = "If applying tower skins, whether to also change the icons in the shop to reflect the skin.",
         icon = VanillaSprites.BananaCostumeFarmerIcon
+    };
+
+    public static readonly ModSettingBool DisqualifyMonkeyTeams = new(false)
+    {
+        description = "Whether using Powers in Shop towers will invalidate a Monkey Teams match",
+        icon = VanillaSprites.MonkeyTeamsLogoSmall
     };
 
     #region Costs

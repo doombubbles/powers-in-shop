@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using BTD_Mod_Helper;
+using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
@@ -9,7 +12,9 @@ using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.GenericBehaviors;
 using Il2CppAssets.Scripts.Models.Towers;
+using Il2CppAssets.Scripts.Models.TowerSets;
 using Il2CppAssets.Scripts.Unity;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 using Il2CppNinjaKiwi.Common.ResourceUtils;
 
 namespace PowersInShop;
@@ -100,4 +105,24 @@ public abstract class ModPowerTower : ModTower<Powers>
             }
         }
     }
+
+    [HarmonyPatch]
+    internal static class InGame_TowerCreated_0
+    {
+        [HarmonyTargetMethod]
+        internal static MethodBase TargetMethod() => typeof(InGame)
+            .GetNestedTypes()
+            .SelectMany(type => type.GetMethods())
+            .First(method => method.Name.Contains($"_{nameof(InGame.TowerCreated)}_"));
+
+        [HarmonyPrefix]
+        internal static bool Prefix(TowerDetailsModel x, ref bool __result)
+        {
+            if (!PowersById.ContainsKey(x.towerId) || PowersInShopMod.DisqualifyMonkeyTeams) return true;
+
+            __result = false;
+            return false;
+        }
+    }
+
 }
