@@ -7,8 +7,10 @@ using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Data;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Gameplay.Mods;
+using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Models.Towers.Behaviors.Abilities.Behaviors;
 using Il2CppAssets.Scripts.Unity;
+using Il2CppSystem.IO;
 using MelonLoader;
 using Newtonsoft.Json.Linq;
 using PowersInShop;
@@ -178,7 +180,7 @@ public class PowersInShopMod : BloonsTD6Mod
                 towerModel.cost = modPowerTower.Cost;
             }
         }
-        
+
         var chimps = GameData.Instance.mods.FirstOrDefault(model => model.name == "Clicks");
         if (chimps == null) return;
 
@@ -212,9 +214,10 @@ public class PowersInShopMod : BloonsTD6Mod
     public override void OnNewGameModel(GameModel gameModel)
     {
         var powerTowers = ModContent.GetContent<ModPowerTower>().Select(tower => tower.Id).ToArray();
-        gameModel.GetDescendants<BiohackModel>().ForEach(biohack =>
+        foreach (var biohack in gameModel.GetTowersWithBaseId(TowerType.Benjamin)
+                     .SelectMany(model => model.GetDescendants<BiohackModel>().ToArray()))
         {
             biohack.filterTowers = biohack.filterTowers.Concat(powerTowers).ToArray();
-        });
+        }
     }
 }

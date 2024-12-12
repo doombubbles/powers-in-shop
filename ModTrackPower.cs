@@ -93,7 +93,7 @@ public abstract class ModTrackPower : ModPowerTower
     }
 
     [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode), typeof(TowerModel),
-        typeof(InputManager.PositionDelegate), typeof(ObjectId), typeof(bool))]
+        typeof(InputManager.PositionDelegate), typeof(ObjectId), typeof(bool), typeof(int))]
     internal class InputManager_EnterPlacementMode
     {
         [HarmonyPostfix]
