@@ -129,12 +129,11 @@ public abstract class ModTrackPower : ModPowerTower
     internal class Map_CanPlace
     {
         [HarmonyPostfix]
-        internal static void Patch(Map __instance, ref bool __result, Vector2 at, TowerModel tm)
+        internal static void Patch(Vector2 at, TowerModel tm, ref bool __result)
         {
-            if (tm.GetModTower() is ModTrackPower)
+            if (tm.GetModTower() is ModTrackPower trackPower)
             {
-                var map = InGame.instance.bridge.simulation.Map;
-                __result = map.GetAreaAtPoint(at)?.areaModel?.type == AreaType.track;
+                __result = InGame.Bridge.CheckPowerLocation(at.ToUnity(), trackPower.PowerModel);
             }
         }
     }

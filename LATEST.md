@@ -1,1 +1,1 @@
-- Fixed for BTD6 v46
+- Fixed placement logic for track powers to let them be properly placed on the new map

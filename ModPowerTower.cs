@@ -11,6 +11,7 @@ using Il2Cpp;
 using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.GenericBehaviors;
+using Il2CppAssets.Scripts.Models.Powers;
 using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Models.TowerSets;
 using Il2CppAssets.Scripts.Unity;
@@ -35,14 +36,9 @@ public abstract class ModPowerTower : ModTower<Powers>
 
     public sealed override SpriteReference IconReference => PortraitReference;
 
-    public sealed override SpriteReference PortraitReference
-    {
-        get
-        {
-            var powerWithName = Game.instance.model.GetPowerWithName(Name);
-            return powerWithName.tower?.portrait ?? powerWithName.icon;
-        }
-    }
+    public PowerModel PowerModel => (InGame.instance?.GetGameModel() ?? Game.instance.model).GetPowerWithName(Name);
+
+    public sealed override SpriteReference PortraitReference => PowerModel.tower?.portrait ?? PowerModel.icon;
 
     public sealed override bool IncludeInMonkeyTeams => false;
 
@@ -59,7 +55,7 @@ public abstract class ModPowerTower : ModTower<Powers>
 
     public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
     {
-        var power = gameModel.GetPowerWithName(Name);
+        var power = PowerModel;
 
         if (power.tower != null)
         {
@@ -124,5 +120,4 @@ public abstract class ModPowerTower : ModTower<Powers>
             return false;
         }
     }
-
 }
