@@ -55,7 +55,7 @@ public abstract class ModPowerTower : ModTower<Powers>
 
     public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
     {
-        var power = PowerModel;
+        var power = gameModel.GetPowerWithName(Name);
 
         if (power.tower != null)
         {

@@ -1,1 +1,2 @@
-- Fixed placement logic for track powers to let them be properly placed on the new map
+- Fixed for BTD6 v47
+- Fixed bug where Moneky Knowledge wouldn't properly apply to some power towers

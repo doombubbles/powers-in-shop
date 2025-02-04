@@ -55,7 +55,7 @@ public abstract class ModTrackPower : ModPowerTower
         var projectile = powerModel.GetDescendant<ProjectileModel>().Duplicate();
 
         towerModel.AddBehavior(new CreateProjectileOnTowerDestroyModel("", projectile,
-            new SingleEmissionModel("", null), true, false));
+            new SingleEmissionModel("", null), true, false, false));
 
         towerModel.RemoveBehaviors<SlowBloonsZoneModel>();
         towerModel.RemoveBehaviors<SavedSubTowerModel>();
