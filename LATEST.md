@@ -1,2 +1,1 @@
-- Fixed for BTD6 v47
-- Fixed bug where Moneky Knowledge wouldn't properly apply to some power towers
+- Fixed for BTD6 v49

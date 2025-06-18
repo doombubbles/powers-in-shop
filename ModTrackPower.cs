@@ -150,7 +150,7 @@ public abstract class ModTrackPower : ModPowerTower
             {
                 ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).gameObject
                     .GetComponent<TowerPurchaseButton>()
-                    .ButtonActivated();
+                    .ButtonActivated(true);
             }
         }
     }
