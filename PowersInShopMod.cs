@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Api.Enums;
 using BTD_Mod_Helper.Api.ModOptions;
+using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Data;
 using Il2CppAssets.Scripts.Models;
@@ -22,6 +24,9 @@ namespace PowersInShop;
 
 public class PowersInShopMod : BloonsTD6Mod
 {
+    public static readonly Dictionary<string, IPowerTower> PowersByName = new();
+    public static readonly Dictionary<string, IPowerTower> PowersById = new();
+
     private static readonly ModSettingBool AllowInChimps = new(false)
     {
         icon = VanillaSprites.CHIMPSIcon
@@ -166,16 +171,11 @@ public class PowersInShopMod : BloonsTD6Mod
 
     #endregion
 
-    public override void OnUpdate()
-    {
-        ModTrackPower.OnUpdate();
-    }
-
     public override void OnSaveSettings(JObject settings)
     {
-        foreach (var modPowerTower in ModContent.GetContent<ModPowerTower>())
+        foreach (var modPowerTower in ModContent.GetContent<ModTower>().Where(tower => tower is IPowerTower))
         {
-            foreach (var towerModel in Game.instance.model.GetTowersWithBaseId(modPowerTower.Id))
+            foreach (var towerModel in Game.instance.model.GetTowersWithBaseId(modPowerTower.Id).AsIEnumerable())
             {
                 towerModel.cost = modPowerTower.Cost;
             }
@@ -185,7 +185,8 @@ public class PowersInShopMod : BloonsTD6Mod
         if (chimps == null) return;
 
         var chimpsMutators = chimps.mutatorMods.ToList();
-        var existingLocks = ModContent.GetContent<ModPowerTower>()
+        var existingLocks = ModContent.GetContent<ModTower>()
+            .Where(tower => tower is IPowerTower)
             .ToDictionary(tower => tower.Id, tower => chimpsMutators.OfType<LockTowerModModel>()
                 .FirstOrDefault(model => model.towerToLock != tower.Id));
 
@@ -214,7 +215,7 @@ public class PowersInShopMod : BloonsTD6Mod
     public override void OnNewGameModel(GameModel gameModel)
     {
         var powerTowers = ModContent.GetContent<ModPowerTower>().Select(tower => tower.Id).ToArray();
-        foreach (var biohack in gameModel.GetTowersWithBaseId(TowerType.Benjamin)
+        foreach (var biohack in gameModel.GetTowersWithBaseId(TowerType.Benjamin).AsIEnumerable()
                      .SelectMany(model => model.GetDescendants<BiohackModel>().ToArray()))
         {
             biohack.filterTowers = biohack.filterTowers.Concat(powerTowers).ToArray();

@@ -1,1 +1,1 @@
-- Fixed for BTD6 v49
+- Fixed for BTD6 v50, shop versions of the new pro powers will be added in a subsequent update

@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BTD_Mod_Helper;
-using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
-using Il2Cpp;
 using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.GenericBehaviors;
@@ -20,11 +18,8 @@ using Il2CppNinjaKiwi.Common.ResourceUtils;
 
 namespace PowersInShop;
 
-public abstract class ModPowerTower : ModTower<Powers>
+public abstract class ModPowerTower : ModTower<Powers>, IPowerTower
 {
-    public static readonly Dictionary<string, ModPowerTower> PowersByName = new();
-    public static readonly Dictionary<string, ModPowerTower> PowersById = new();
-
     public sealed override int TopPathUpgrades => 0;
     public sealed override int MiddlePathUpgrades => 0;
     public sealed override int BottomPathUpgrades => 0;
@@ -34,10 +29,10 @@ public abstract class ModPowerTower : ModTower<Powers>
 
     public sealed override string Description => $"[{Name} Description]";
 
+
+    public PowerModel PowerModel => (InGame.instance?.GetGameModel() ?? Game.instance.model).GetPowerWithId(Name);
+
     public sealed override SpriteReference IconReference => PortraitReference;
-
-    public PowerModel PowerModel => (InGame.instance?.GetGameModel() ?? Game.instance.model).GetPowerWithName(Name);
-
     public sealed override SpriteReference PortraitReference => PowerModel.tower?.portrait ?? PowerModel.icon;
 
     public sealed override bool IncludeInMonkeyTeams => false;
@@ -49,13 +44,13 @@ public abstract class ModPowerTower : ModTower<Powers>
     public override void Register()
     {
         base.Register();
-        PowersByName[Name] = this;
-        PowersById[Id] = this;
+        PowersInShopMod.PowersByName[Name] = this;
+        PowersInShopMod.PowersById[Id] = this;
     }
 
     public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
     {
-        var power = gameModel.GetPowerWithName(Name);
+        var power = gameModel.GetPowerWithId(Name);
 
         if (power.tower != null)
         {
@@ -76,7 +71,7 @@ public abstract class ModPowerTower : ModTower<Powers>
         {
             if (!PowersInShopMod.ApplyTowerSkins) return;
 
-            if (PowersByName.TryGetValue(towerModel.baseId, out var modPowerTower))
+            if (PowersInShopMod.PowersByName.TryGetValue(towerModel.baseId, out var modPowerTower))
             {
                 var powersInShopTower = CosmeticHelper.rootGameModel.GetTowerFromId(modPowerTower.Id);
 
@@ -90,7 +85,7 @@ public abstract class ModPowerTower : ModTower<Powers>
                     ModHelper.Warning<PowersInShopMod>(e);
                 }
             }
-            else if (PowersById.ContainsKey(towerModel.baseId))
+            else if (PowersInShopMod.PowersById.ContainsKey(towerModel.baseId))
             {
                 towerModel.GetBehavior<DisplayModel>().display = towerModel.display;
 
@@ -114,7 +109,8 @@ public abstract class ModPowerTower : ModTower<Powers>
         [HarmonyPrefix]
         internal static bool Prefix(TowerDetailsModel x, ref bool __result)
         {
-            if (!PowersById.ContainsKey(x.towerId) || PowersInShopMod.DisqualifyMonkeyTeams) return true;
+            if (!PowersInShopMod.PowersById.ContainsKey(x.towerId) || PowersInShopMod.DisqualifyMonkeyTeams)
+                return true;
 
             __result = false;
             return false;

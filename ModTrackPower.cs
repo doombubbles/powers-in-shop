@@ -1,157 +1,114 @@
-using Il2CppAssets.Scripts.Models.Audio;
-using Il2CppAssets.Scripts.Models.GenericBehaviors;
-using Il2CppAssets.Scripts.Models.Map;
-using Il2CppAssets.Scripts.Models.Powers.Effects;
-using Il2CppAssets.Scripts.Models.Towers;
-using Il2CppAssets.Scripts.Models.Towers.Behaviors;
-using Il2CppAssets.Scripts.Models.Towers.Projectiles;
-using Il2CppAssets.Scripts.Simulation.Towers;
-using Il2CppAssets.Scripts.Simulation.Track;
-using Il2CppAssets.Scripts.Unity;
-using Il2CppAssets.Scripts.Unity.UI_New;
-using Il2CppAssets.Scripts.Unity.UI_New.InGame;
-using Il2CppAssets.Scripts.Unity.UI_New.InGame.RightMenu;
+using BTD_Mod_Helper.Api.Helpers;
+using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
-using Il2CppAssets.Scripts;
+using Il2CppAssets.Scripts.Data;
+using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
 using Il2CppAssets.Scripts.Models;
-using Il2CppAssets.Scripts.Models.Towers.Behaviors.Emissions;
-using Il2CppAssets.Scripts.Unity.UI_New.InGame.StoreMenu;
+using Il2CppAssets.Scripts.Models.Effects;
+using Il2CppAssets.Scripts.Models.Powers;
+using Il2CppAssets.Scripts.Models.Powers.Effects;
+using Il2CppAssets.Scripts.Models.Towers;
+using Il2CppAssets.Scripts.Models.Towers.Projectiles;
+using Il2CppAssets.Scripts.Simulation;
+using Il2CppAssets.Scripts.Simulation.Powers;
+using Il2CppAssets.Scripts.Simulation.Towers;
+using Il2CppAssets.Scripts.Unity;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 using Il2CppNinjaKiwi.Common.ResourceUtils;
 using UnityEngine;
-using UnityEngine.UI;
-using CreateEffectOnExpireModel = Il2CppAssets.Scripts.Models.Towers.Behaviors.CreateEffectOnExpireModel;
-using Vector2 = Il2CppAssets.Scripts.Simulation.SMath.Vector2;
 
 namespace PowersInShop;
 
-public abstract class ModTrackPower : ModPowerTower
+public abstract class ModTrackPower : ModFakeTower<Powers>, IPowerTower
 {
+    public override bool DontAddToShop => Cost < 0;
+    public override string DisplayName => $"[{Name}]";
+    public sealed override string Description => $"[{Name} Description]";
+
+    public override string Icon => SpriteResizer.Scaled(PowerModel.icon.AssetGUID, .75f);
+
+    public static Simulation Sim => InGame.Bridge.Simulation;
+    public static GameModel GameModel => InGame.instance == null ? Game.instance.model : Sim.model;
+    public PowerModel PowerModel => GameModel.GetPowerWithId(Name);
+
     protected abstract int Pierce { get; }
 
-    public override string BaseTower => TowerType.NaturesWardTotem;
+    public override void Register()
+    {
+        base.Register();
+        PowersInShopMod.PowersByName[Name] = this;
+        PowersInShopMod.PowersById[Id] = this;
+    }
+
+    public override AudioClipReference PlacementSound =>
+        PowerModel.GetBehavior<CreateSoundOnPowerModel>().sound.assetId;
+
+    public override EffectModel PlacementEffect =>
+        PowerModel.GetBehavior<CreateEffectOnPowerModel>().effectModel;
+
+    public override bool CanPlaceAt(Vector2 at, Tower hoveredTower, ref string helperMessage) =>
+        InGame.Bridge.CheckPowerLocation(at, PowerModel);
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
-        var powerModel = Game.instance.model.GetPowerWithName(Name);
-
-        towerModel.footprint = new CircleFootprintModel("", 0, true, false, true);
-        towerModel.radius = 3;
-        towerModel.range = 0;
-        towerModel.showPowerTowerBuffs = false;
-
-        towerModel.GetBehavior<CreateEffectOnExpireModel>().effectModel =
-            powerModel.GetBehavior<CreateEffectOnPowerModel>().effectModel;
-
-        var assetId = powerModel.GetBehavior<CreateSoundOnPowerModel>().sound.assetId;
-        var createSoundOnTowerPlaceModel = towerModel.GetBehavior<CreateSoundOnTowerPlaceModel>();
-        createSoundOnTowerPlaceModel.sound1.assetId = assetId;
-        createSoundOnTowerPlaceModel.sound2.assetId = assetId;
-        createSoundOnTowerPlaceModel.heroSound1 = new SoundModel("", new AudioClipReference(""));
-        createSoundOnTowerPlaceModel.heroSound2 = new SoundModel("", new AudioClipReference(""));
-
-        towerModel.display = towerModel.GetBehavior<DisplayModel>().display = CreatePrefabReference("");
-
-        var projectile = powerModel.GetDescendant<ProjectileModel>().Duplicate();
-
-        towerModel.AddBehavior(new CreateProjectileOnTowerDestroyModel("", projectile,
-            new SingleEmissionModel("", null), true, false, false));
-
-        towerModel.RemoveBehaviors<SlowBloonsZoneModel>();
-        towerModel.RemoveBehaviors<SavedSubTowerModel>();
+        towerModel.AddBehavior(PowerModel.GetDescendant<ProjectileModel>());
     }
 
     public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
     {
-        var basePowerProj = Game.instance.model.GetPowerWithName(Name).GetDescendant<ProjectileModel>();
-        var currentPowerProj = gameModel.GetPowerWithName(Name).GetDescendant<ProjectileModel>();
-        var createProjectile = towerModel.GetDescendant<CreateProjectileOnTowerDestroyModel>();
-        var projectile = createProjectile.projectileModel;
+        var currentPowerModel = gameModel.GetPowerWithId(Name);
+
+        var projectile = towerModel.GetBehavior<ProjectileModel>();
+        towerModel.RemoveBehavior<ProjectileModel>();
+
+        var currentPowerProj = gameModel.GetPowerWithId(Name).GetDescendant<ProjectileModel>();
 
         var newProjectile = currentPowerProj.Duplicate();
 
-        newProjectile.pierce = Pierce * currentPowerProj.pierce / basePowerProj.pierce;
+        newProjectile.pierce *= Pierce / projectile.pierce;
 
-        createProjectile.RemoveChildDependant(projectile);
-        createProjectile.projectileModel = newProjectile;
-        createProjectile.AddChildDependant(newProjectile);
-    }
+        towerModel.AddBehavior(newProjectile);
 
-    internal static void OnUpdate()
-    {
-        if (InGame.instance == null) return;
-
-        var inputManager = InGame.instance.inputManager;
-        var towerModel = inputManager?.towerModel;
-
-        if (towerModel != null && inputManager!.inPlacementMode && towerModel.GetModTower() is ModTrackPower)
+        if (PowersInShopMod.ChangeIconsForSkins)
         {
-            var map = InGame.instance.bridge.simulation.Map;
-            InGameObjects.instance.IconUpdate(InputManager.GetCursorPosition(),
-                map.CanPlace(new Vector2(inputManager.cursorPositionWorld), towerModel));
+            towerModel.icon.guidRef = SpriteResizer.Scaled(currentPowerModel.icon.AssetGUID, .75f);
         }
+
+        towerModel.portrait = towerModel.icon;
     }
 
-    [HarmonyPatch(typeof(InputManager), nameof(InputManager.EnterPlacementMode), typeof(TowerModel),
-        typeof(InputManager.PositionDelegate), typeof(ObjectId), typeof(bool), typeof(int))]
-    internal class InputManager_EnterPlacementMode
+    public override void OnPlace(Vector2 at, TowerModel towerModelFake, Tower hoveredTower, float cost)
     {
-        [HarmonyPostfix]
-        internal static void Postfix(TowerModel forTowerModel)
-        {
-            if (forTowerModel.GetModTower() is ModTrackPower trackPower)
-            {
-                var image = ShopMenu.instance
-                    .GetTowerButtonFromBaseId(trackPower.Id)
-                    .gameObject.transform
-                    .Find("Icon").GetComponent<Image>();
+        var proj = towerModelFake.GetBehavior<ProjectileModel>();
+        var owner = InGame.Bridge.MyPlayerNumber;
 
-                InGameObjects.instance.IconUpdate(new UnityEngine.Vector2(-3000, 0), false);
-                InGameObjects.instance.IconStart(image.sprite);
-            }
-        }
+        var power = new TrackPower
+        {
+            sim = Sim
+        };
+
+        power.CreateProjectile(new Il2CppAssets.Scripts.Simulation.SMath.Vector2(at), proj, owner);
     }
 
-    [HarmonyPatch(typeof(InputManager), nameof(InputManager.ExitPlacementMode))]
-    internal class InputManager_ExitPlacementMode
+    [HarmonyPatch(typeof(CosmeticHelper), nameof(CosmeticHelper.ApplyAssetChangesToPowerModel))]
+    internal static class CosmeticHelper_ApplyAssetChangesToPowerModel
     {
         [HarmonyPostfix]
-        internal static void Postfix()
+        internal static void Postfix(PowerModel pm, PowerAssetChange pac)
         {
-            if (InGameObjects.instance.powerIcon != null)
-            {
-                InGameObjects.instance.IconEnd();
-            }
+            if (!PowersInShopMod.ChangeIconsForSkins ||
+                !PowersInShopMod.PowersByName.TryGetValue(pm.name, out var power) ||
+                power is not ModTrackPower trackPower) return;
+
+            var item = GameData.Instance.trophyStoreItems
+                .GetAllItems()
+                .First(storeItem => storeItem.itemTypes.Any(data => data.itemTarget.id == pac.id));
+
+            var tower = CosmeticHelper.rootGameModel.GetTowerWithName(trackPower.Id);
+
+            tower.portrait = tower.icon = new SpriteReference(SpriteResizer.Scaled(item.icon.AssetGUID, .75f));
         }
     }
 
-    [HarmonyPatch(typeof(Map), nameof(Map.CanPlace))]
-    internal class Map_CanPlace
-    {
-        [HarmonyPostfix]
-        internal static void Patch(Vector2 at, TowerModel tm, ref bool __result)
-        {
-            if (tm.GetModTower() is ModTrackPower trackPower)
-            {
-                __result = InGame.Bridge.CheckPowerLocation(at.ToUnity(), trackPower.PowerModel);
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Tower), nameof(Tower.OnDestroy))]
-    public class Tower_OnDestroy
-    {
-        [HarmonyPrefix]
-        public static void Prefix(Tower __instance)
-        {
-            if (__instance.towerModel?.GetModTower() is ModTrackPower trackPower &&
-                (!InGame.instance.IsCoop || __instance.owner == Game.instance.GetNkGI().PeerID) &&
-                (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-            {
-                ShopMenu.instance.GetTowerButtonFromBaseId(trackPower.Id).gameObject
-                    .GetComponent<TowerPurchaseButton>()
-                    .ButtonActivated(true);
-            }
-        }
-    }
 }

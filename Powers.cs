@@ -26,14 +26,14 @@ public class Powers : ModTowerSet
             if (!PowersInShopMod.OverrideHotkeys) return;
 
             var hotkeysForPowersInShop = __instance.powerHotkeys.ToArray()
-                .Where(info => ModPowerTower.PowersByName.ContainsKey(info.standardPowerButton.powerModel.name))
+                .Where(info => PowersInShopMod.PowersByName.ContainsKey(info.standardPowerButton.powerModel.name))
                 .DistinctBy(info => info.standardPowerButton.powerModel.name)
                 .ToDictionary(info => info.standardPowerButton.powerModel.name);
 
             foreach (var towerPurchaseButton in ShopMenu.instance.ActiveTowerButtons)
             {
                 var towerBaseId = towerPurchaseButton.TowerModel.baseId;
-                if (!ModPowerTower.PowersById.TryGetValue(towerBaseId, out var power)) continue;
+                if (!PowersInShopMod.PowersById.TryGetValue(towerBaseId, out var power)) continue;
 
                 HotkeyButton hotkeyButton;
                 if (hotkeysForPowersInShop.TryGetValue(power.Name, out var powerHotkey))
