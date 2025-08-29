@@ -31,6 +31,5 @@ public class EnergisingTotem : ModPowerTower
     public override void MutateTower(TowerModel towerModel)
     {
         towerModel.GetBehavior<RateSupportModel>().multiplier = 1f / (1 + TotemAttackSpeed);
-        towerModel.GetBehavior<EnergisingTotemBehaviorModel>().monkeyMoneyCost = 0;
     }
 }

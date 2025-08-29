@@ -10,6 +10,7 @@ using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Data;
 using Il2CppAssets.Scripts.Models.Gameplay.Mods;
 using Il2CppAssets.Scripts.Models.Profile;
+using Il2CppAssets.Scripts.Models.Towers.Behaviors;
 using Il2CppAssets.Scripts.Simulation.Input;
 using Il2CppAssets.Scripts.Simulation.Towers;
 using Il2CppAssets.Scripts.Unity;
@@ -107,9 +108,14 @@ public class PowersInShopMod : BloonsTD6Mod
         chimps.mutatorMods = chimpsMutators.ToIl2CppReferenceArray();
     }
 
+    public static void MarkAsPowerFromShop(Tower tower) =>
+        tower.AddMutator(new RateSupportModel.RateSupportMutator(true, MutatorId, 1, 10, null));
+
+    public static bool IsPowerFromShop(Tower tower) => tower.IsMutatedBy(MutatorId);
+
     public override void OnTowerSaved(Tower tower, TowerSaveDataModel saveData)
     {
-        if (tower.IsMutatedBy(MutatorId))
+        if (IsPowerFromShop(tower))
         {
             saveData.metaData[MutatorId] = "true";
         }
@@ -119,7 +125,7 @@ public class PowersInShopMod : BloonsTD6Mod
     {
         if (saveData.metaData.ContainsKey(MutatorId))
         {
-            ModPowerTower.MarkAsPowerFromShop(tower);
+            MarkAsPowerFromShop(tower);
         }
     }
 
@@ -137,5 +143,25 @@ public class PowersInShopMod : BloonsTD6Mod
         pi.powerCounts[powerTower.Name] = count;
 
         ShopMenu.instance?.GetTowerButtonFromBaseId(id)?.MarkDirty();
+    }
+
+    private static bool clipboardIsPowerFromShop;
+
+    public override object? Call(string operation, params object[] parameters)
+    {
+        switch (operation)
+        {
+            case "OnTowerCopied" when parameters.CheckTypes(out Tower towerCopied):
+                clipboardIsPowerFromShop = IsPowerFromShop(towerCopied);
+                break;
+            case "OnTowerPasted" when parameters.CheckTypes(out Tower towerPasted):
+                MarkAsPowerFromShop(towerPasted);
+                break;
+            case "OnClipboardCleared":
+                clipboardIsPowerFromShop = false;
+                break;
+        }
+
+        return null;
     }
 }

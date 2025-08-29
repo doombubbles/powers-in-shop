@@ -28,7 +28,7 @@ public class TSMThemeRecharge_OnButtonPress
     [HarmonyPrefix]
     public static bool Prefix(TSMThemeDefault __instance, TowerToSimulation tower)
     {
-        if (!tower.tower.IsMutatedBy(PowersInShopMod.MutatorId)) return true;
+        if (!PowersInShopMod.IsPowerFromShop(tower.tower)) return true;
 
         int baseCost;
 
@@ -74,7 +74,7 @@ internal static class TSMThemeRecharge_Selected
     [HarmonyPostfix]
     internal static void Postfix(TSMThemeDefault __instance, TowerToSimulation tower)
     {
-        var isPowerInShop = tower.tower.IsMutatedBy(PowersInShopMod.MutatorId);
+        var isPowerInShop = PowersInShopMod.IsPowerFromShop(tower.tower);
 
         GameObject button;
         int baseCost;

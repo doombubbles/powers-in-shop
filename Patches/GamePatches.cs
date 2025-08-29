@@ -97,7 +97,7 @@ internal static class InputManager_CreatePlacementTower
 
             __instance.worth = nextCost;
 
-            ModPowerTower.MarkAsPowerFromShop(__instance);
+            PowersInShopMod.MarkAsPowerFromShop(__instance);
 
             nextPlace = null;
             nextCost = 0;

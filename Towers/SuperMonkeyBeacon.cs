@@ -16,9 +16,4 @@ public class SuperMonkeyBeacon : ModPowerTowerPro
 
     protected override int Order => 16;
     public override int BaseCost => 4000;
-
-    public override void MutateTower(TowerModel towerModel)
-    {
-        towerModel.GetAbility().rechargeMonkeyMoneyCost = 0;
-    }
 }
