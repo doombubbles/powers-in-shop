@@ -1,114 +1,48 @@
-using BTD_Mod_Helper.Api.Helpers;
-using BTD_Mod_Helper.Api.Towers;
+using System.Collections.Generic;
+using BTD_Mod_Helper.Api;
+using BTD_Mod_Helper.Api.ModOptions;
 using BTD_Mod_Helper.Extensions;
-using HarmonyLib;
-using Il2CppAssets.Scripts.Data;
-using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
-using Il2CppAssets.Scripts.Models;
-using Il2CppAssets.Scripts.Models.Effects;
 using Il2CppAssets.Scripts.Models.Powers;
-using Il2CppAssets.Scripts.Models.Powers.Effects;
-using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Models.Towers.Projectiles;
-using Il2CppAssets.Scripts.Simulation;
-using Il2CppAssets.Scripts.Simulation.Powers;
-using Il2CppAssets.Scripts.Simulation.Towers;
+using Il2CppAssets.Scripts.Simulation.SMath;
 using Il2CppAssets.Scripts.Unity;
-using Il2CppAssets.Scripts.Unity.UI_New.InGame;
-using Il2CppNinjaKiwi.Common.ResourceUtils;
-using UnityEngine;
 
 namespace PowersInShop;
 
-public abstract class ModTrackPower : ModFakeTower<Powers>, IPowerTower
+/// <summary>
+/// Base ModTower for instant use track powers
+/// </summary>
+public abstract class ModTrackPower : ModInstantPower
 {
-    public override bool DontAddToShop => Cost < 0;
-    public override string DisplayName => $"[{Name}]";
-    public sealed override string Description => $"[{Name} Description]";
+    private ModSettingInt pierce = null!;
 
-    public override string Icon => SpriteResizer.Scaled(PowerModel.icon.AssetGUID, .75f);
+    protected abstract int BasePierce { get; }
 
-    public static Simulation Sim => InGame.Bridge.Simulation;
-    public static GameModel GameModel => InGame.instance == null ? Game.instance.model : Sim.model;
-    public PowerModel PowerModel => GameModel.GetPowerWithId(Name);
+    public override IEnumerable<ModContent> Load()
+    {
+        pierce = new ModSettingInt(BasePierce)
+        {
+            category = PowersInShopMod.Properties,
+            min = 0
+        };
 
-    protected abstract int Pierce { get; }
+        return base.Load();
+    }
 
     public override void Register()
     {
         base.Register();
-        PowersInShopMod.PowersByName[Name] = this;
-        PowersInShopMod.PowersById[Id] = this;
+        pierce.icon = IconReference.AssetGUID;
     }
 
-    public override AudioClipReference PlacementSound =>
-        PowerModel.GetBehavior<CreateSoundOnPowerModel>().sound.assetId;
-
-    public override EffectModel PlacementEffect =>
-        PowerModel.GetBehavior<CreateEffectOnPowerModel>().effectModel;
-
-    public override bool CanPlaceAt(Vector2 at, Tower hoveredTower, ref string helperMessage) =>
-        InGame.Bridge.CheckPowerLocation(at, PowerModel);
-
-    public override void ModifyBaseTowerModel(TowerModel towerModel)
+    public override void ActivatePower(Vector2 at, PowerModel powerModel)
     {
-        towerModel.AddBehavior(PowerModel.GetDescendant<ProjectileModel>());
-    }
+        var baseProjectile = Game.instance.model.GetPowerWithId(Name).GetDescendant<ProjectileModel>();
 
-    public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)
-    {
-        var currentPowerModel = gameModel.GetPowerWithId(Name);
+        powerModel = powerModel.Duplicate();
+        powerModel.GetDescendant<ProjectileModel>().pierce *= pierce / baseProjectile.pierce;
 
-        var projectile = towerModel.GetBehavior<ProjectileModel>();
-        towerModel.RemoveBehavior<ProjectileModel>();
-
-        var currentPowerProj = gameModel.GetPowerWithId(Name).GetDescendant<ProjectileModel>();
-
-        var newProjectile = currentPowerProj.Duplicate();
-
-        newProjectile.pierce *= Pierce / projectile.pierce;
-
-        towerModel.AddBehavior(newProjectile);
-
-        if (PowersInShopMod.ChangeIconsForSkins)
-        {
-            towerModel.icon.guidRef = SpriteResizer.Scaled(currentPowerModel.icon.AssetGUID, .75f);
-        }
-
-        towerModel.portrait = towerModel.icon;
-    }
-
-    public override void OnPlace(Vector2 at, TowerModel towerModelFake, Tower hoveredTower, float cost)
-    {
-        var proj = towerModelFake.GetBehavior<ProjectileModel>();
-        var owner = InGame.Bridge.MyPlayerNumber;
-
-        var power = new TrackPower
-        {
-            sim = Sim
-        };
-
-        power.CreateProjectile(new Il2CppAssets.Scripts.Simulation.SMath.Vector2(at), proj, owner);
-    }
-
-    [HarmonyPatch(typeof(CosmeticHelper), nameof(CosmeticHelper.ApplyAssetChangesToPowerModel))]
-    internal static class CosmeticHelper_ApplyAssetChangesToPowerModel
-    {
-        [HarmonyPostfix]
-        internal static void Postfix(PowerModel pm, PowerAssetChange pac)
-        {
-            if (!PowersInShopMod.ChangeIconsForSkins ||
-                !PowersInShopMod.PowersByName.TryGetValue(pm.name, out var power) ||
-                power is not ModTrackPower trackPower) return;
-
-            var item = GameData.Instance.trophyStoreItems
-                .GetAllItems()
-                .First(storeItem => storeItem.itemTypes.Any(data => data.itemTarget.id == pac.id));
-
-            var tower = CosmeticHelper.rootGameModel.GetTowerWithName(trackPower.Id);
-
-            tower.portrait = tower.icon = new SpriteReference(SpriteResizer.Scaled(item.icon.AssetGUID, .75f));
-        }
+        base.ActivatePower(at, powerModel);
     }
 
 }

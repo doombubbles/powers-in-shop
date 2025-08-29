@@ -3,7 +3,7 @@
 public static class ModHelperData
 {
     public const string WorksOnVersion = "50.0";
-    public const string Version = "2.1.11";
+    public const string Version = "3.0.0";
     public const string RepoOwner = "doombubbles";
     public const string RepoName = "powers-in-shop";
     public const string Name = "Powers in Shop";

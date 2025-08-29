@@ -10,15 +10,19 @@ Powers in Shop
 
 ### Adds many of the Monkey Money Powers to the in-game shop for purchase with normal currency.
 
-This includes all Tower-based Powers: Monkey Farmer ($500), Tech Bot ($500), Portable Lake ($750), Pontoon ($750) and
-Energising Totem ($1000); as well as the Track-based Powers: Road Spikes ($50), Glue Trap ($100), Camo Trap ($100), and
-Moab Mine ($500).
+This includes all Tower-based Powers: Monkey Farmer (\$500), Tech Bot (\$375), Portable Lake (\$500), Pontoon (\$450)
+and Energising Totem (\$1000); as well as the Track-based Powers: Road Spikes (\$50), Glue Trap (\$500),
+Camo Trap (\$600), and Moab Mine (\$500).
+
+Also includes the new Powers Pro: Banana Farmer Pro ($1000), Super Monkey Beacon (\$4000).
+Powers Pro towers and upgrades aren't automatically unlocked, you need to have earned their real power counterparts
+legitimately.
 
 The costs of all these towers are configurable, with the defaults shown above. Prices can be set to a negative number to
 remove them from the shop. The pierces for the Track-based powers (all normal by default except for Moab Mine--changed
 to 1), as is the Recharge Cost and Attack Speed of the Energising Totem ($500 and 15% down from 25%, by default).
 
-Also configurable are allowing the Power Towers in CHIMPS mode (defaults to false) and restricting them in Primary/Military/Magic Only mode
-towers (defaults to true).
+Also configurable are allowing the Power Towers in CHIMPS mode (defaults to false) and restricting them in
+Primary/Military/Magic Only mode towers (defaults to true).
 
 [![Requires BTD6 Mod Helper](https://raw.githubusercontent.com/gurrenm3/BTD-Mod-Helper/master/banner.png)](https://github.com/gurrenm3/BTD-Mod-Helper#readme)

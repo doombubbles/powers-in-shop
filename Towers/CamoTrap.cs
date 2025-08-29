@@ -2,7 +2,7 @@ namespace PowersInShop.Towers;
 
 public class CamoTrap : ModTrackPower
 {
-    public override int Cost => PowersInShopMod.CamoTrapCost;
-    protected override int Pierce => PowersInShopMod.CamoTrapPierce;
+    protected override int BasePierce => 500;
     protected override int Order => 4;
+    public override int BaseCost => 600;
 }

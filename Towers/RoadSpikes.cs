@@ -2,7 +2,7 @@ namespace PowersInShop.Towers;
 
 public class RoadSpikes : ModTrackPower
 {
-    public override int Cost => PowersInShopMod.RoadSpikesCost;
-    protected override int Pierce => PowersInShopMod.RoadSpikesPierce;
+    protected override int BasePierce => 20;
     protected override int Order => 1;
+    public override int BaseCost => 50;
 }

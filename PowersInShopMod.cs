@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BTD_Mod_Helper;
 using BTD_Mod_Helper.Api;
@@ -7,12 +8,12 @@ using BTD_Mod_Helper.Api.ModOptions;
 using BTD_Mod_Helper.Api.Towers;
 using BTD_Mod_Helper.Extensions;
 using Il2CppAssets.Scripts.Data;
-using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Gameplay.Mods;
-using Il2CppAssets.Scripts.Models.Towers;
-using Il2CppAssets.Scripts.Models.Towers.Behaviors.Abilities.Behaviors;
+using Il2CppAssets.Scripts.Models.Profile;
+using Il2CppAssets.Scripts.Simulation.Input;
+using Il2CppAssets.Scripts.Simulation.Towers;
 using Il2CppAssets.Scripts.Unity;
-using Il2CppSystem.IO;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame.RightMenu;
 using MelonLoader;
 using Newtonsoft.Json.Linq;
 using PowersInShop;
@@ -24,6 +25,8 @@ namespace PowersInShop;
 
 public class PowersInShopMod : BloonsTD6Mod
 {
+    public const string MutatorId = nameof(PowersInShop);
+
     public static readonly Dictionary<string, IPowerTower> PowersByName = new();
     public static readonly Dictionary<string, IPowerTower> PowersById = new();
 
@@ -46,130 +49,20 @@ public class PowersInShopMod : BloonsTD6Mod
         icon = VanillaSprites.HotkeysIcon
     };
 
-    public static readonly ModSettingBool ApplyTowerSkins = new(true)
-    {
-        description = "Whether to apply power tower skins like the Banana Costume to powers in shop.",
-        icon = VanillaSprites.BananaCostumeFarmerPortrait
-    };
-
     public static readonly ModSettingBool ChangeIconsForSkins = new(false)
     {
-        description = "If applying tower skins, whether to also change the icons in the shop to reflect the skin.",
+        description = "Whether to change the icons in the shop to reflect the power skin being used.",
         icon = VanillaSprites.BananaCostumeFarmerIcon
-    };
-
-    public static readonly ModSettingBool DisqualifyMonkeyTeams = new(false)
-    {
-        description = "Whether using Powers in Shop towers will invalidate a Monkey Teams match",
-        icon = VanillaSprites.MonkeyTeamsLogoSmall
     };
 
     #region Costs
 
     public static readonly ModSettingCategory Costs = "Costs";
 
-
-    public static readonly ModSettingInt RoadSpikesCost = new(50)
-    {
-        icon = VanillaSprites.HotSpikesIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt MoabMineCost = new(500)
-    {
-        icon = VanillaSprites.MoabMineIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt GlueTrapCost = new(100)
-    {
-        icon = VanillaSprites.GlueTrapIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt CamoTrapCost = new(100)
-    {
-        icon = VanillaSprites.CamoTrapIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt BananaFarmerCost = new(500)
-    {
-        icon = VanillaSprites.BananaFarmerIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt TechBotCost = new(500)
-    {
-        icon = VanillaSprites.TechbotIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt PontoonCost = new(750)
-    {
-        icon = VanillaSprites.PontoonIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt PortableLakeCost = new(750)
-    {
-        icon = VanillaSprites.PortableLakeIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt EnergisingTotemCost = new(1000)
-    {
-        icon = VanillaSprites.EnergisingTotemIcon,
-        category = Costs
-    };
-
-    public static readonly ModSettingInt TotemRechargeCost = new(500)
-    {
-        description = "In in-game cash, not monkey money",
-        icon = VanillaSprites.EnergisingTotemIcon,
-        category = Costs
-    };
-
+    public static readonly ModSettingCategory RechargeCosts = "Recharge Costs";
     #endregion
-
-    #region Propeties
 
     public static readonly ModSettingCategory Properties = "Properties";
-
-    public static readonly ModSettingInt RoadSpikesPierce = new(20)
-    {
-        icon = VanillaSprites.HotSpikesIcon,
-        category = Properties
-    };
-
-    public static readonly ModSettingInt MoabMinePierce = new(1)
-    {
-        icon = VanillaSprites.MoabMineIcon,
-        category = Properties
-    };
-
-    public static readonly ModSettingInt GlueTrapPierce = new(300)
-    {
-        icon = VanillaSprites.GlueTrapIcon,
-        category = Properties
-    };
-
-    public static readonly ModSettingInt CamoTrapPierce = new(500)
-    {
-        icon = VanillaSprites.CamoTrapIcon,
-        category = Properties
-    };
-
-    public static readonly ModSettingDouble TotemAttackSpeed = new(.15)
-    {
-        description = ".15 = 15%, down by default from the normal 25% boost so it isn't blatantly overpowered",
-        icon = VanillaSprites.EnergisingTotemIcon,
-        category = Properties,
-        min = 0,
-        max = .99
-    };
-
-    #endregion
 
     public override void OnSaveSettings(JObject settings)
     {
@@ -179,6 +72,8 @@ public class PowersInShopMod : BloonsTD6Mod
             {
                 towerModel.cost = modPowerTower.Cost;
             }
+
+            modPowerTower.AddOrRemoveFromShop();
         }
 
         var chimps = GameData.Instance.mods.FirstOrDefault(model => model.name == "Clicks");
@@ -212,13 +107,35 @@ public class PowersInShopMod : BloonsTD6Mod
         chimps.mutatorMods = chimpsMutators.ToIl2CppReferenceArray();
     }
 
-    public override void OnNewGameModel(GameModel gameModel)
+    public override void OnTowerSaved(Tower tower, TowerSaveDataModel saveData)
     {
-        var powerTowers = ModContent.GetContent<ModPowerTower>().Select(tower => tower.Id).ToArray();
-        foreach (var biohack in gameModel.GetTowersWithBaseId(TowerType.Benjamin).AsIEnumerable()
-                     .SelectMany(model => model.GetDescendants<BiohackModel>().ToArray()))
+        if (tower.IsMutatedBy(MutatorId))
         {
-            biohack.filterTowers = biohack.filterTowers.Concat(powerTowers).ToArray();
+            saveData.metaData[MutatorId] = "true";
         }
+    }
+
+    public override void OnTowerLoaded(Tower tower, TowerSaveDataModel saveData)
+    {
+        if (saveData.metaData.ContainsKey(MutatorId))
+        {
+            ModPowerTower.MarkAsPowerFromShop(tower);
+        }
+    }
+
+    public static void SyncInventoryCounts(TowerInventory ti, PowerInventory pi, string powerName,
+        Func<int, int, int> operation)
+    {
+        var id = ModContent.GetId<PowersInShopMod>(powerName);
+        if (!ModContent.TryFind(id, out ModTower powerTower)) return;
+
+        var count = operation(
+            ti.towerCounts.TryGetValue(powerTower.Id, out var towerCount) ? towerCount : 0,
+            pi.powerCounts.TryGetValue(powerTower.Name, out var powerCount) ? powerCount : 0
+        );
+        ti.towerCounts[powerTower.Id] = count;
+        pi.powerCounts[powerTower.Name] = count;
+
+        ShopMenu.instance?.GetTowerButtonFromBaseId(id)?.MarkDirty();
     }
 }
