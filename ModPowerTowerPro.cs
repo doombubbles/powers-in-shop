@@ -27,8 +27,7 @@ public abstract class ModPowerTowerPro : ModPowerTowerBase
 
     public sealed override string Description => $"[{Name}Power Description]";
 
-    public override bool IsValidCrosspath(params int[] tiers) =>
-        ModHelper.HasMod("UltimateCrosspathing") || tiers.Count(tier => tier > 0) <= 1;
+    public override bool IsValidCrosspath(params int[] tiers) => tiers.Count(tier => tier > 0) <= 1;
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
