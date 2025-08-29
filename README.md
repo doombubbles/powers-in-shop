@@ -12,7 +12,8 @@ Powers in Shop
 
 This includes all Tower-based Powers: Monkey Farmer (\$500), Tech Bot (\$375), Portable Lake (\$500), Pontoon (\$450)
 and Energising Totem (\$1000); as well as the Track-based Powers: Road Spikes (\$50), Glue Trap (\$500),
-Camo Trap (\$600), and Moab Mine (\$500).
+Camo Trap (\$600), Moab Mine (\$2000), and Cave Monkey (\750). Super Monkey Storm, Monkey Boost, Thrive, and Time Stop
+are included but must be manually enabled in settings.
 
 Also includes the new Powers Pro: Banana Farmer Pro ($1000), Super Monkey Beacon (\$4000).
 Powers Pro towers and upgrades aren't automatically unlocked, you need to have earned their real power counterparts
