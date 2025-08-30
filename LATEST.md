@@ -1,2 +1,1 @@
-- Fixed issue with the Beacon Recharge Button not always showing
-- Updated support for Ultimate Crosspathing
+- Fixed a console error that occasionally showed up about mutators

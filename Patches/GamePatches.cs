@@ -93,7 +93,7 @@ internal static class InputManager_CreatePlacementTower
         [HarmonyPostfix]
         internal static void Postfix(Tower __instance)
         {
-            if (__instance.towerModel.name != nextPlace?.name) return;
+            if (nextPlace == null || __instance.towerModel.name != nextPlace.name) return;
 
             __instance.worth = nextCost;
 
@@ -114,12 +114,11 @@ internal static class RateSupportMutator_Mutate
     [HarmonyPrefix]
     internal static bool Prefix(RateSupportModel.RateSupportMutator __instance, Model model, ref bool __result)
     {
-        if (__instance.id != PowersInShopMod.MutatorId || !model.Is(out TowerModel towerModel)) return true;
+        if (__instance.id != PowersInShopMod.MutatorId || !model.Is(out TowerModel towerModel) ||
+            !PowersInShopMod.PowersByName.TryGetValue(towerModel.baseId, out var powerTower) ||
+            powerTower is not ModPowerTowerBase modPowerTowerBase) return true;
 
-        if (PowersInShopMod.PowersByName[towerModel.baseId] is ModPowerTowerBase powerTower)
-        {
-            powerTower.MutateTower(towerModel);
-        }
+        modPowerTowerBase.MutateTower(towerModel);
 
         __result = true;
         return false;
