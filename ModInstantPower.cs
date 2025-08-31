@@ -11,6 +11,7 @@ using Il2CppAssets.Scripts.Simulation.SMath;
 using Il2CppAssets.Scripts.Simulation.Towers;
 using Il2CppAssets.Scripts.Unity;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 namespace PowersInShop;
 
@@ -60,6 +61,7 @@ public abstract class ModInstantPower : ModFakeTower<Powers>, IPowerTower
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
+        towerModel.behaviors ??= new Il2CppReferenceArray<Model>(0);
     }
 
     public override void ModifyTowerModelForMatch(TowerModel towerModel, GameModel gameModel)

@@ -1,1 +1,2 @@
-- Fixed a console error that occasionally showed up about mutators
+- Fixed the Allow in Chimps settings
+- Fixed a potential error when the internal Chimps mutator would modify the game model

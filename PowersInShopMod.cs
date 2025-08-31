@@ -61,9 +61,15 @@ public class PowersInShopMod : BloonsTD6Mod
     public static readonly ModSettingCategory Costs = "Costs";
 
     public static readonly ModSettingCategory RechargeCosts = "Recharge Costs";
+
     #endregion
 
     public static readonly ModSettingCategory Properties = "Properties";
+
+    public override void OnTitleScreen()
+    {
+        HandleChimps();
+    }
 
     public override void OnSaveSettings(JObject settings)
     {
@@ -77,6 +83,11 @@ public class PowersInShopMod : BloonsTD6Mod
             modPowerTower.AddOrRemoveFromShop();
         }
 
+        HandleChimps();
+    }
+
+    public static void HandleChimps()
+    {
         var chimps = GameData.Instance.mods.FirstOrDefault(model => model.name == "Clicks");
         if (chimps == null) return;
 
@@ -84,12 +95,11 @@ public class PowersInShopMod : BloonsTD6Mod
         var existingLocks = ModContent.GetContent<ModTower>()
             .Where(tower => tower is IPowerTower)
             .ToDictionary(tower => tower.Id, tower => chimpsMutators.OfType<LockTowerModModel>()
-                .FirstOrDefault(model => model.towerToLock != tower.Id));
+                .FirstOrDefault(model => model.towerToLock == tower.Id));
 
         if (AllowInChimps)
         {
-            foreach (var lockTowerModel in existingLocks.Values.Where(lockTowerModel =>
-                         lockTowerModel != null))
+            foreach (var lockTowerModel in existingLocks.Values.Where(lockTowerModel => lockTowerModel != null))
             {
                 chimpsMutators.Remove(lockTowerModel);
             }
@@ -100,7 +110,7 @@ public class PowersInShopMod : BloonsTD6Mod
             {
                 if (lockTowerModel == null)
                 {
-                    chimpsMutators.Add(new LockTowerModModel("Clicks", id));
+                    chimpsMutators.Add(new LockTowerModModel("", id));
                 }
             }
         }
