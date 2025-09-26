@@ -1,2 +1,2 @@
-- Fixed the Allow in Chimps settings
-- Fixed a potential error when the internal Chimps mutator would modify the game model
+- Fixed Energising Totem and Super Monkey Beacon recharge buttons for v50.2
+- Fixed some interactions with Copy/Pasting Powers Pro purchased from the shop

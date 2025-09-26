@@ -61,6 +61,7 @@ public abstract class ModInstantPower : ModFakeTower<Powers>, IPowerTower
 
     public override void ModifyBaseTowerModel(TowerModel towerModel)
     {
+        base.ModifyBaseTowerModel(towerModel);
         towerModel.behaviors ??= new Il2CppReferenceArray<Model>(0);
     }
 

@@ -14,6 +14,7 @@ using Il2CppAssets.Scripts.Models.Towers.Behaviors;
 using Il2CppAssets.Scripts.Simulation.Input;
 using Il2CppAssets.Scripts.Simulation.Towers;
 using Il2CppAssets.Scripts.Unity;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame.RightMenu;
 using MelonLoader;
 using Newtonsoft.Json.Linq;
@@ -165,11 +166,22 @@ public class PowersInShopMod : BloonsTD6Mod
                 clipboardIsPowerFromShop = IsPowerFromShop(towerCopied);
                 break;
             case "OnTowerPasted" when parameters.CheckTypes(out Tower towerPasted):
-                MarkAsPowerFromShop(towerPasted);
+                if (clipboardIsPowerFromShop)
+                {
+                    MarkAsPowerFromShop(towerPasted);
+                }
                 break;
             case "OnClipboardCleared":
                 clipboardIsPowerFromShop = false;
                 break;
+            case "ModifyClipboardCost" when parameters.CheckTypes(out Tower towerCopied):
+                if (IsPowerFromShop(towerCopied) &&
+                    ModPowerTowerPro.ByName.TryGetValue(towerCopied.towerModel.baseId, out var powerPro))
+                {
+                    return InGame.Bridge.Model.GetTower(powerPro.Id).cost;
+                }
+
+                return 0;
         }
 
         return null;

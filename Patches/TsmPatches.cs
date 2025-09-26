@@ -26,7 +26,7 @@ public class TSMThemeRecharge_OnButtonPress
     }
 
     [HarmonyPrefix]
-    public static bool Prefix(TSMThemeDefault __instance, TowerToSimulation tower)
+    public static bool Prefix(TSMThemeDefault __instance, TowerToSimulation tower, TSMButton button)
     {
         if (!PowersInShopMod.IsPowerFromShop(tower.tower)) return true;
 
@@ -54,7 +54,7 @@ public class TSMThemeRecharge_OnButtonPress
 
         InGame.Bridge.Simulation.RemoveCash(cost, Simulation.CashType.Powers, tower.owner,
             Simulation.CashSource.Normal);
-        tower.PerformCustomUIAction();
+        tower.PerformCustomUIAction(button.buttonId);
 
         return false;
     }
