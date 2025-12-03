@@ -6,6 +6,7 @@ using Il2CppAssets.Scripts.Data;
 using Il2CppAssets.Scripts.Data.Cosmetics.PowerAssetChanges;
 using Il2CppAssets.Scripts.Models;
 using Il2CppAssets.Scripts.Models.Powers;
+using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Models.Towers.Upgrades;
 using Il2CppAssets.Scripts.Unity.Player;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
@@ -116,30 +117,51 @@ internal static class UpgradeScreen_ResetUpgradeUnlocks
 /// <summary>
 /// Allow looking at powers pro upgrades in sandbox
 /// </summary>
-[HarmonyPatch(typeof(InGame), nameof(InGame.ShowUpgradeTree), [])]
-internal static class InGame_ShowUpgradeTree
+[HarmonyPatch(typeof(InGame), nameof(InGame.ShowUpgradeTree), typeof(PlayerContext))]
+internal static class InGame_ShowUpgradeTree1
 {
-    public static bool showUpgradeTree = true;
+    public static bool Active { get; private set; }
 
     [HarmonyPrefix]
-    internal static void Prefix() => showUpgradeTree = true;
+    internal static void Prefix() => Active = true;
 
     [HarmonyPostfix]
-    internal static void Postfix() => showUpgradeTree = false;
+    internal static void Postfix() => Active = false;
 
-    [HarmonyPatch(typeof(ReadonlyInGameData), nameof(ReadonlyInGameData.ArePowersAllowed))]
-    internal static class ReadonlyInGameData_ArePowersAllowed
+}
+
+/// <summary>
+/// Allow looking at powers pro upgrades in sandbox
+/// </summary>
+[HarmonyPatch(typeof(InGame), nameof(InGame.ShowUpgradeTree), typeof(TowerModel), typeof(PlayerContext.Context),
+    typeof(bool))]
+internal static class InGame_ShowUpgradeTree2
+{
+    public static bool Active { get; private set; }
+
+    [HarmonyPrefix]
+    internal static void Prefix() => Active = true;
+
+    [HarmonyPostfix]
+    internal static void Postfix() => Active = false;
+
+}
+
+/// <summary>
+/// Allow looking at powers pro upgrades in sandbox
+/// </summary>
+[HarmonyPatch(typeof(ReadonlyInGameData), nameof(ReadonlyInGameData.ArePowersAllowed))]
+internal static class ReadonlyInGameData_ArePowersAllowed
+{
+    [HarmonyPrefix]
+    internal static bool Prefix(ref bool __result)
     {
-        [HarmonyPrefix]
-        internal static bool Prefix(ref bool __result)
+        if (InGame_ShowUpgradeTree1.Active || InGame_ShowUpgradeTree2.Active)
         {
-            if (showUpgradeTree)
-            {
-                __result = true;
-                return false;
-            }
-
-            return true;
+            __result = true;
+            return false;
         }
+
+        return true;
     }
 }

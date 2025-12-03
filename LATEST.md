@@ -1,2 +1,1 @@
-- Fixed Energising Totem and Super Monkey Beacon recharge buttons for v50.2
-- Fixed some interactions with Copy/Pasting Powers Pro purchased from the shop
+- Minor fix for v52
