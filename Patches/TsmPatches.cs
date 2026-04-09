@@ -4,6 +4,7 @@ using BTD_Mod_Helper.Api.Helpers;
 using BTD_Mod_Helper.Extensions;
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppAssets.Scripts.Models.Towers;
 using Il2CppAssets.Scripts.Simulation;
 using Il2CppAssets.Scripts.Unity.Bridge;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
@@ -38,7 +39,9 @@ public class TSMThemeRecharge_OnButtonPress
         }
         else if (__instance.Is<TSMThemeSuperMonkeyBeacon>())
         {
-            baseCost = SuperMonkeyBeacon.BeaconRechargeCost;
+            baseCost = tower.tower.towerModel.baseId == TowerType.SuperMonkeyBeacon
+                ? SuperMonkeyBeacon.BeaconRechargeCost
+                : MonkeyBoostPro.HypeRechargeCost;
         }
         else
         {
@@ -87,7 +90,9 @@ internal static class TSMThemeRecharge_Selected
         else if (__instance.Is(out TSMThemeSuperMonkeyBeacon superMonkeyBeacon))
         {
             button = superMonkeyBeacon.rechargeButton.gameObject;
-            baseCost = SuperMonkeyBeacon.BeaconRechargeCost;
+            baseCost = tower.tower.towerModel.baseId == TowerType.SuperMonkeyBeacon
+                ? SuperMonkeyBeacon.BeaconRechargeCost
+                : MonkeyBoostPro.HypeRechargeCost;
         }
         else
         {

@@ -1,1 +1,3 @@
-- Minor fix for v52
+- Minor fix for v54
+- Added Hype Boost Monkey and Tech Bot Prime to Shop
+  - Standard rules apply for needing to have already unlocked the real Powers Pro in order to use
